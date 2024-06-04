@@ -4,6 +4,33 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const fs = require("fs");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const HtmlWebpackSimpleIncludePlugin = require("html-webpack-simple-include-plugin");
+
+// Define the root directory containing the HTML files
+const rootDirectory = path.resolve(__dirname, "src");
+
+// Function to generate HtmlWebpackPlugin instances for each HTML file
+function generateHtmlPlugins(rootDir) {
+  const plugins = [];
+  // Read the root directory
+  const files = fs.readdirSync(rootDir);
+
+  // Filter HTML Pages files
+  const htmlPageFiles = files.filter((file) => path.extname(file) === ".html");
+  // Loop through HTML files
+  htmlPageFiles.forEach((file) => {
+    plugins.push(
+      new HtmlWebpackPlugin({
+        filename: file,
+        template: path.join(rootDir, file), // Fix: Change `directory` to `rootDir`
+      })
+    );
+  });
+
+  return plugins;
+}
+
+const htmlFiles = generateHtmlPlugins(rootDirectory);
+
 module.exports = {
   entry: {
     main: "./src/index.js",
@@ -37,21 +64,15 @@ module.exports = {
     new CopyPlugin({
       patterns: [{ from: "src/assets", to: "assets" }],
     }),
-    new HtmlWebpackPlugin({
-      template: "src/index.html",
-    }),
-    new HtmlWebpackPlugin({
-      filename: "testPage.html",
-      template: "src/testPage.html",
-    }),
+    ...htmlFiles,
 
     new HtmlWebpackSimpleIncludePlugin([
-      {
-        tag: "<include-check />",
-        content: fs.readFileSync(
-          path.resolve(__dirname, "src/partials/check.html")
-        ),
-      },
+      // {
+      //   tag: "<include-darkLightToggle />",
+      //   content: fs.readFileSync(
+      //     path.resolve(__dirname, "src/partials/darkLightToggle.html")
+      //   ),
+      // },
     ]),
   ],
   output: {
